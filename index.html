@@ -134,7 +134,7 @@ o.innerHTML=`<div class="c"><p class="mu">Step ${s+1} of 3</p><h2>${OB[s][0]}</h
 function theme(){document.documentElement.dataset.t=S.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}
 setInterval(()=>{let ch=0;const t=Date.now();S.a.forEach(a=>{if(a.st=='lim'&&a.rs&&a.rs<=t){a.st='ok';a.rs=0;ch=1}});
 const d=new Date().toDateString();if(S.day!=d){S.day=d;if(S.daily)S.a.forEach(a=>a.n=0);ch=1}
-if(ch){save();if(ed===null)render()}document.querySelectorAll('[data-t]').forEach(e=>e.textContent=cd(+e.dataset.t))},1000);
+if(ch){save();if(ed===null)render()}document.querySelectorAll('span[data-t]').forEach(e=>e.textContent=cd(+e.dataset.t))},1000);
 const ic=n=>{const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.fillStyle='#3730a3';x.fillRect(0,0,n,n);x.fillStyle='#fff';x.font='bold '+n*.45+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('LB',n/2,n/2);return c.toDataURL()};
 try{const m={name:'LimitBridge Free',short_name:'LimitBridge',start_url:location.href.split('#')[0],display:'standalone',background_color:'#3730a3',theme_color:'#3730a3',icons:[192,512].map(n=>({src:ic(n),sizes:n+'x'+n,type:'image/png'}))};
 $('#mf').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
