@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>LimitBridge Free</title><meta name="theme-color" content="#3730a3"><link rel="manifest" id="mf">
+<style>
+:root{--bg:#f4f5fb;--card:#fff;--tx:#161a2e;--mu:#667;--pr:#3730a3;--bd:#e0e2f0;--ok:#15803d;--wa:#d97706;--er:#dc2626}
+:root[data-t=dark]{--bg:#0e1020;--card:#191c33;--tx:#eef0ff;--mu:#a0a6c8;--pr:#8b85ff;--bd:#2a2e50}
+*{box-sizing:border-box}body{margin:0;font:16px/1.45 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:90px}
+header{position:sticky;top:0;z-index:5;background:#3730a3;color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:19px;margin:0}h2{font-size:18px;margin:6px 0 10px}h3{font-size:16px;margin:0 0 6px}p{margin:6px 0}
+main{padding:14px;max-width:640px;margin:auto}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+.b{min-height:48px;min-width:48px;padding:0 16px;border:0;border-radius:12px;background:var(--pr);color:#fff;font-weight:700;cursor:pointer}
+:root[data-t=dark] .b{color:#0e1020}header .b{background:#ffffff33;color:#fff}
+.b.g{background:transparent;color:var(--pr);border:2px solid var(--pr)}.b.d{background:var(--er);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>.b{flex:1}.w{width:100%}
+input,select,textarea{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);margin:4px 0 10px}
+textarea{min-height:150px;font:13px ui-monospace,monospace}
+label{font-size:14px;color:var(--mu);font-weight:600}
+.k{display:flex;gap:12px;align-items:center;padding:10px 0;color:var(--tx);font-size:16px}.k input{width:26px;height:26px;min-height:0;margin:0}
+.pill{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700;color:#fff}
+.ok{background:var(--ok)}.near{background:var(--wa)}.lim{background:var(--er)}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.big{font-size:24px;font-weight:800}.mu{color:var(--mu);font-size:14px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;min-height:58px;background:none;border:0;font-size:12px;color:var(--mu)}nav button.on{color:var(--pr);font-weight:800}nav span{display:block;font-size:21px}
+pre{white-space:pre-wrap;word-break:break-word;font-size:11px;margin:0;background:var(--bg);padding:6px;border-radius:8px;max-height:320px;overflow:auto}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:6px}.df{background:#f59e0b55}
+#toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+#ob{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;align-items:center;padding:20px}#ob[hidden]{display:none}#ob .c{width:100%;max-width:480px;margin:auto}
+</style></head><body>
+<header><h1 id="ti"></h1><button class="b" data-a="th" aria-label="Dark or light mode">🌓</button></header>
+<main id="m"></main><nav id="nv"></nav><div id="ob" hidden></div><div id="toast"></div>
+<script>
+const K='limitbridge-free-v1',$=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST={ok:'Available',near:'Near limit',lim:'Limit reached'};
+const T={dash:'Dashboard',accts:'Accounts',projs:'Projects',save:'Save Before Limit',hand:'Handoff Maker',vault:'Code Vault',tips:'Token Saver Tips',track:'Message Tracker',more:'More',bk:'Backup & Install'};
+const SAVEP="Summarize this project so another assistant can continue: goal, what is done, what is in progress, the exact next step, key decisions, and ALL current code in full. Use clear headings.";
+const TIPS=['Start new chats often. Long chats use up your limit faster.','Keep prompts short and clear.','Ask for only the changed code, not the whole file.','Avoid pasting huge files. Paste only the part that matters.','Use one task per chat.','Save a summary before the limit, not after.','Say "no explanation, code only" when you only need code.','Do the planning on paper first, then ask once.'];
+const SW="const C='lbf1';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html'])));self.skipWaiting()});self.addEventListener('fetch',e=>{if(e.request.method!='GET')return;e.respondWith(fetch(e.request).then(r=>{const x=r.clone();caches.open(C).then(c=>c.put(e.request,x));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))))});";
+let S={a:[],p:[],tips:{},bk:0,ob:0,th:'',daily:0,day:''},pg='dash',ed=null,sel={},ip=null,fresh=true;
+try{const r=JSON.parse(localStorage.getItem(K)||'null');if(r&&typeof r==='object'){S=Object.assign(S,r);fresh=false}}catch(e){}
+if(!Array.isArray(S.a))S.a=[];if(!Array.isArray(S.p))S.p=[];if(!S.tips)S.tips={};
+if(fresh){const t=Date.now();S.bk=t;
+S.a=[{id:'d1',nm:'Demo Account A',em:'a@example.com',co:'#6366f1',no:'Demo',st:'lim',rs:t+72e5,n:12,demo:1},{id:'d2',nm:'Demo Account B',em:'b@example.com',co:'#10b981',no:'Demo',st:'ok',rs:0,n:3,demo:1}];
+S.p=[{id:'d3',nm:'Demo: Todo App',go:'Build a simple todo web app',tk:'HTML, CSS, JS',no:'Demo project',ss:[{a:'d1',at:t-72e5}],vs:[{v:1,code:'<h1>Todo</h1>',at:t-72e5},{v:2,code:'<h1>Todo</h1>\n<ul id="list"></ul>',at:t-36e5}],demo:1}]}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Cannot save. Storage is full or blocked.')}};
+let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>t.style.opacity=0,2000)};
+const cd=t=>{const s=Math.max(0,Math.floor((t-Date.now())/1e3));return (s/3600|0)+'h '+String(s%3600/60|0).padStart(2,'0')+'m '+String(s%60).padStart(2,'0')+'s'};
+const fd=t=>new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
+const lt=t=>new Date(t-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
+const g=(k,d)=>sel[k]||d;
+const opts=(arr,v,l)=>arr.map(x=>`<option value="${esc(x.id)}" ${x.id==v?'selected':''}>${esc(x[l])}</option>`).join('');
+const cp=async t=>{try{await navigator.clipboard.writeText(t)}catch(e){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove()}toast('Copied')};
+const dl=(n,t,m)=>{const u=URL.createObjectURL(new Blob([t],{type:m||'text/plain'})),a=document.createElement('a');a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1e3)};
+const df=(a,b)=>{const s=new Set(b.split('\n'));return a.split('\n').map(l=>s.has(l)?esc(l):`<span class="df">${esc(l)||' '}</span>`).join('\n')};
+const next=()=>{const by=s=>S.a.filter(a=>a.st==s).sort((x,y)=>(x.n||0)-(y.n||0))[0];let a=by('ok');
+if(a)return{a,w:'Available now · '+(a.n||0)+' messages today'};a=by('near');if(a)return{a,w:'Near limit, but you can still use it'};
+a=S.a.filter(x=>x.st=='lim').sort((x,y)=>x.rs-y.rs)[0];return a&&{a,w:'All at limit. Back in <span data-t="'+a.rs+'">'+cd(a.rs)+'</span>'}};
+const pill=a=>`<span class="pill ${a.st}">${ST[a.st]}</span>`,dot=c=>`<span class="dot" style="background:${esc(c||'#999')}"></span>`;
+const V={
+dash(){const n=next(),old=Date.now()-S.bk>6048e5;
+return (old?`<div class="c" style="border-color:var(--wa)"><b>⏰ Backup reminder</b><p class="mu">It has been over 7 days since your last backup.</p><button class="b w" data-a="nav" data-i="bk">Back up now</button></div>`:'')+
+`<div class="c" style="background:#3730a3;color:#fff;border:0"><div>Which account next?</div>${n?`<div class="big">${esc(n.a.nm)}</div><div>${n.w}</div>`:'<div class="big">Add an account first</div>'}</div>
+<h2>Accounts</h2>`+(S.a.map(a=>`<div class="c"><div class="row">${dot(a.co)}<b style="flex:1">${esc(a.nm)}</b>${pill(a)}</div>${a.st=='lim'&&a.rs?`<div class="big">⏳ <span data-t="${a.rs}">${cd(a.rs)}</span></div>`:''}</div>`).join('')||'<p class="mu">Open Accounts to add one.</p>')+
+`<h2>Active projects</h2>`+(S.p.map(p=>{const l=p.ss.at(-1),a=l&&S.a.find(x=>x.id==l.a);return `<div class="c"><b>${esc(p.nm)}</b><div class="mu">${l?'Last used: '+esc(a?a.nm:'deleted account')+' · '+fd(l.at):'No sessions yet'}</div></div>`}).join('')||'<p class="mu">Open Projects to add one.</p>')},
+accts(){if(ed!==null){const a=ed=='new'?{co:'#6366f1',st:'ok'}:S.a.find(x=>x.id==ed)||{};
+return `<div class="c"><h2>${ed=='new'?'Add':'Edit'} account</h2><label>Nickname</label><input id="nm" value="${esc(a.nm)}"><label>Email (never type a password here)</label><input id="em" type="email" value="${esc(a.em)}"><label>Color</label><input id="co" type="color" value="${esc(a.co||'#6366f1')}"><label>Notes</label><input id="no" value="${esc(a.no)}"><label>Status</label><select id="st">${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${a.st==k?'selected':''}>${v}</option>`).join('')}</select><label>Reset time</label><input id="rs" type="datetime-local" value="${a.rs?lt(a.rs):''}"><div class="row"><button class="b" data-a="sa">Save</button><button class="b g" data-a="x">Cancel</button></div></div>`}
+return `<button class="b w" data-a="add">+ Add account</button><div style="height:12px"></div>`+(S.a.map(a=>`<div class="c"><div class="row">${dot(a.co)}<b style="flex:1">${esc(a.nm)}</b>${pill(a)}</div><div class="mu">${esc(a.em)} ${esc(a.no)}</div>${a.st=='lim'&&a.rs?`<div class="big">⏳ <span data-t="${a.rs}">${cd(a.rs)}</span></div>`:''}<div class="row" style="margin-top:8px"><button class="b g" data-a="hit" data-i="${a.id}">Hit limit (5h)</button><button class="b g" data-a="edit" data-i="${a.id}">Edit</button><button class="b d" data-a="del" data-i="${a.id}">Delete</button></div></div>`).join('')||'<p class="mu">No accounts yet. Add your first one.</p>')},
+projs(){if(ed!==null){const p=ed=='new'?{}:S.p.find(x=>x.id==ed)||{};
+return `<div class="c"><h2>${ed=='new'?'Add':'Edit'} project</h2><label>Name</label><input id="nm" value="${esc(p.nm)}"><label>Goal</label><input id="go" value="${esc(p.go)}"><label>Tech stack</label><input id="tk" value="${esc(p.tk)}"><label>Notes</label><textarea id="no" style="min-height:90px">${esc(p.no)}</textarea><div class="row"><button class="b" data-a="sp">Save</button><button class="b g" data-a="x">Cancel</button></div></div>`}
+const p=S.p.find(x=>x.id==sel.pj);
+if(p)return `<button class="b g" data-a="bk2">← Back</button><div class="c" style="margin-top:12px"><h2>${esc(p.nm)}</h2><p><b>Goal:</b> ${esc(p.go)}</p><p><b>Tech:</b> ${esc(p.tk)}</p><p class="mu">${esc(p.no)}</p><div class="row"><button class="b g" data-a="ep" data-i="${p.id}">Edit</button><button class="b d" data-a="dp" data-i="${p.id}">Delete</button></div></div>
+<div class="c"><h3>Timeline</h3>${p.ss.slice().reverse().map(s=>{const a=S.a.find(x=>x.id==s.a);return `<div class="row" style="margin:8px 0">${dot(a&&a.co)}<b>${esc(a?a.nm:'Deleted account')}</b><span class="mu">${fd(s.at)}</span></div>`}).join('')||'<p class="mu">No sessions yet.</p>'}
+<label>Log a session</label><select data-m="la">${opts(S.a,g('la',S.a[0]&&S.a[0].id),'nm')}</select><button class="b w" data-a="ls" data-i="${p.id}">Add session now</button></div>`;
+return `<button class="b w" data-a="addp">+ Add project</button><div style="height:12px"></div>`+(S.p.map(p=>`<div class="c"><b>${esc(p.nm)}</b><div class="mu">${esc(p.go)}</div><div class="mu">${p.ss.length} sessions · ${p.vs.length} code versions</div><button class="b w" style="margin-top:8px" data-a="op" data-i="${p.id}">Open</button></div>`).join('')||'<p class="mu">No projects yet. Add one.</p>')},
+save(){return `<div class="c"><h2>Step 1</h2><p>Tap Copy. Paste it in the chat that is almost full. Then copy the answer.</p><pre>${esc(SAVEP)}</pre><button class="b w" style="margin-top:10px" data-a="cps">Copy prompt</button></div><div class="c"><h2>Step 2</h2><p>Open Handoff Maker and paste the answer.</p><button class="b g w" data-a="nav" data-i="hand">Go to Handoff Maker</button></div>`},
+hand(){const n=next();return `<div class="c"><label>Project</label><select data-m="hp">${opts(S.p,g('hp',S.p[0]&&S.p[0].id),'nm')}</select><label>Next account</label><select data-m="ha">${opts(S.a,g('ha',n&&n.a.id),'nm')}</select><label>Paste the summary from the old chat</label><textarea data-m="sum" placeholder="Paste here...">${esc(sel.sum||'')}</textarea><button class="b w" data-a="mk">Create handoff</button></div>`+
+(sel.out?`<div class="c"><h3>Ready prompt</h3><textarea readonly style="min-height:200px">${esc(sel.out)}</textarea><div class="row"><button class="b" data-a="cpo">Copy</button><button class="b g" data-a="dlo">Download .md</button><button class="b g" data-a="sh">Share</button></div></div>`:'')},
+vault(){const p=S.p.find(x=>x.id==g('vp',S.p[0]&&S.p[0].id));if(!p)return '<p class="mu">Add a project first.</p>';const n=p.vs.length,i1=+g('c1',Math.max(0,n-2)),i2=+g('c2',n-1);
+const vo=(v)=>p.vs.map((x,i)=>`<option value="${i}" ${i==v?'selected':''}>v${x.v}</option>`).join('');
+return `<div class="c"><label>Project</label><select data-m="vp" data-r="1">${opts(S.p,p.id,'nm')}</select><label>Paste the latest code</label><textarea data-m="vc">${esc(sel.vc||'')}</textarea><button class="b w" data-a="sv">Save as v${(n?p.vs[n-1].v:0)+1}</button></div>`+
+p.vs.map((x,i)=>`<div class="c"><div class="row"><b style="flex:1">v${x.v}</b><span class="mu">${fd(x.at)} · ${x.code.split('\n').length} lines</span></div><div class="row" style="margin-top:8px"><button class="b g" data-a="cpv" data-i="${i}">Copy</button><button class="b d" data-a="dv" data-i="${i}">Delete</button></div></div>`).reverse().join('')+
+(n>1?`<div class="c"><h3>Compare</h3><div class="cmp"><select data-m="c1" data-r="1">${vo(i1)}</select><select data-m="c2" data-r="1">${vo(i2)}</select><pre>${df(p.vs[i1].code,p.vs[i2].code)}</pre><pre>${df(p.vs[i2].code,p.vs[i1].code)}</pre></div><p class="mu">Highlighted lines are not in the other version.</p></div>`:'')},
+tips(){return `<div class="c"><h2>Hit limits less</h2>`+TIPS.map((t,i)=>`<label class="k"><input type="checkbox" data-a="tip" data-i="${i}" ${S.tips[i]?'checked':''}>${t}</label>`).join('')+`</div>`},
+track(){return `<div class="c"><label class="k"><input type="checkbox" data-a="dly" ${S.daily?'checked':''}>Reset counts every day</label><button class="b g w" data-a="rall">Reset all counts now</button></div>`+
+S.a.map(a=>`<div class="c" style="border-left:8px solid var(--${a.st=='lim'?'er':a.st=='near'?'wa':'ok'})"><div class="row">${dot(a.co)}<b style="flex:1">${esc(a.nm)}</b>${pill(a)}</div><div class="big">${a.n||0} messages</div><div class="row" style="margin-top:8px"><button class="b" data-a="inc" data-i="${a.id}">+1</button><button class="b g" data-a="dec" data-i="${a.id}">−1</button><button class="b g" data-a="tg" data-i="${a.id}">${a.st=='near'?'Not near':'Mark near limit'}</button></div></div>`).join('')||'<p class="mu">Add an account first.</p>'},
+more(){return [['save','💾 Save Before Limit'],['vault','🔐 Code Vault'],['track','🔢 Message Tracker'],['tips','💡 Token Saver Tips'],['bk','📦 Backup & Install']].map(([k,l])=>`<button class="b g w" style="margin-bottom:10px;text-align:left" data-a="nav" data-i="${k}">${l}</button>`).join('')},
+bk(){return `<div class="c"><h2>Backup</h2><p class="mu">Last backup: ${S.bk?fd(S.bk):'never'}. You get a reminder every 7 days.</p><button class="b w" data-a="exp">Export JSON</button><label style="display:block;margin-top:12px">Import JSON</label><input type="file" id="imp" accept=".json,application/json"></div>
+<div class="c"><h2>Install and offline</h2><p class="mu">Put sw.js in the same folder as index.html. Browsers do not allow an inline service worker.</p><div class="row"><button class="b" data-a="inst">Install app</button><button class="b g" data-a="gsw">Download sw.js</button></div></div>
+<div class="c"><h2>Clean up</h2><div class="row"><button class="b g" data-a="ddemo">Delete demo data</button><button class="b d" data-a="wipe">Erase everything</button></div></div>`}};
+function render(){const nv=[['dash','🏠','Home'],['accts','👤','Accounts'],['projs','📁','Projects'],['hand','🔁','Handoff'],['more','☰','More']];
+$('#ti').textContent=T[pg];$('#m').innerHTML=V[pg]()+`<p class="mu" style="text-align:center;margin-top:20px">Use only your own accounts and follow Claude's terms. Do not share accounts.</p>`;
+$('#nv').innerHTML=nv.map(([k,i,l])=>`<button data-a="nav" data-i="${k}" class="${pg==k||k=='more'&&['save','vault','tips','track','bk'].includes(pg)?'on':''}"><span>${i}</span>${l}</button>`).join('')}
+const A={
+nav(i){pg=i;ed=null;sel.pj=null;render();scrollTo(0,0)},
+th(){S.th=document.documentElement.dataset.t=='dark'?'light':'dark';save();theme()},
+x(){ed=null;render()},add(){ed='new';render()},edit(i){ed=i;render()},
+sa(){const nm=$('#nm').value.trim();if(!nm)return toast('Add a nickname');const o={nm,em:$('#em').value,co:$('#co').value,no:$('#no').value,st:$('#st').value,rs:$('#rs').value?new Date($('#rs').value).getTime():0};
+if(ed=='new')S.a.push(Object.assign({id:uid(),n:0},o));else Object.assign(S.a.find(x=>x.id==ed),o);ed=null;save();render()},
+del(i){if(confirm('Delete this account?')){S.a=S.a.filter(x=>x.id!=i);save();render()}},
+hit(i){const a=S.a.find(x=>x.id==i);a.st='lim';a.rs=Date.now()+18e6;save();render();toast('Timer set for 5 hours. Edit it if needed.')},
+addp(){ed='new';render()},ep(i){ed=i;render()},op(i){sel.pj=i;render()},bk2(){sel.pj=null;render()},
+sp(){const nm=$('#nm').value.trim();if(!nm)return toast('Add a project name');const o={nm,go:$('#go').value,tk:$('#tk').value,no:$('#no').value};
+if(ed=='new'){const p=Object.assign({id:uid(),ss:[],vs:[]},o);S.p.push(p);sel.pj=p.id}else Object.assign(S.p.find(x=>x.id==ed),o);ed=null;save();render()},
+dp(i){if(confirm('Delete this project and its code?')){S.p=S.p.filter(x=>x.id!=i);sel.pj=null;save();render()}},
+ls(i){const a=g('la',S.a[0]&&S.a[0].id);if(!a)return toast('Add an account first');S.p.find(x=>x.id==i).ss.push({a,at:Date.now()});save();render()},
+cps(){cp(SAVEP)},
+mk(){const p=S.p.find(x=>x.id==g('hp',S.p[0]&&S.p[0].id)),n=next(),a=S.a.find(x=>x.id==g('ha',n&&n.a.id));
+if(!p)return toast('Add a project first');if(!(sel.sum||'').trim())return toast('Paste the summary first');const v=p.vs.at(-1);
+sel.out=`You are continuing an existing project. Read everything below, then continue from the NEXT STEP without restarting.\n\n# PROJECT: ${p.nm}\nGOAL: ${p.go}\nTECH STACK: ${p.tk}\nNOTES: ${p.no}\n\n# SUMMARY FROM THE PREVIOUS CHAT (goal, done, in progress, NEXT STEP, decisions, code)\n${sel.sum.trim()}\n`+(v?`\n# LATEST SAVED CODE (v${v.v})\n${v.code}\n`:'')+`\nNow continue from the NEXT STEP.`;
+p.ss.push({a:a&&a.id,at:Date.now()});save();render();toast('Handoff created')},
+cpo(){cp(sel.out)},dlo(){dl('handoff-'+Date.now()+'.md',sel.out,'text/markdown')},
+sh(){navigator.share?navigator.share({title:'Project handoff',text:sel.out}).catch(()=>{}):toast('Share not supported here. Use Copy.')},
+sv(){const p=S.p.find(x=>x.id==g('vp',S.p[0]&&S.p[0].id));if(!(sel.vc||'').trim())return toast('Paste code first');p.vs.push({v:(p.vs.at(-1)?p.vs.at(-1).v:0)+1,code:sel.vc,at:Date.now()});sel.vc='';delete sel.c1;delete sel.c2;save();render();toast('Saved')},
+cpv(i){cp(S.p.find(x=>x.id==g('vp',S.p[0].id)).vs[i].code)},
+dv(i){if(confirm('Delete this version?')){S.p.find(x=>x.id==g('vp',S.p[0].id)).vs.splice(i,1);delete sel.c1;delete sel.c2;save();render()}},
+tip(i,b){S.tips[i]=b.checked;save()},
+dly(i,b){S.daily=b.checked;save()},rall(){S.a.forEach(a=>a.n=0);save();render()},
+inc(i){const a=S.a.find(x=>x.id==i);a.n=(a.n||0)+1;save();render()},dec(i){const a=S.a.find(x=>x.id==i);a.n=Math.max(0,(a.n||0)-1);save();render()},
+tg(i){const a=S.a.find(x=>x.id==i);a.st=a.st=='near'?'ok':'near';save();render()},
+exp(){dl('limitbridge-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(S,null,1),'application/json');S.bk=Date.now();save();render()},
+inst(){ip?ip.prompt():toast('Use your browser menu: Add to Home screen')},gsw(){dl('sw.js',SW,'text/javascript')},
+ddemo(){S.a=S.a.filter(x=>!x.demo);S.p=S.p.filter(x=>!x.demo);save();render();toast('Demo data deleted')},
+wipe(){if(confirm('Erase ALL data? This cannot be undone.')){S={a:[],p:[],tips:{},bk:Date.now(),ob:1,th:S.th,daily:0,day:''};save();render()}},
+on(){sel.o=(sel.o||0)+1;if(sel.o>2){S.ob=1;save()}ob()},skip(){S.ob=1;save();ob()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.i,b)});
+document.addEventListener('input',e=>{const m=e.target.dataset.m;if(m)sel[m]=e.target.value});
+document.addEventListener('change',e=>{const t=e.target,m=t.dataset.m;
+if(m){sel[m]=t.value;if(m=='vp'){delete sel.c1;delete sel.c2}if(t.dataset.r)render()}
+if(t.id=='imp'&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!Array.isArray(o.a)||!Array.isArray(o.p))throw 0;S=Object.assign(S,o);save();render();toast('Imported')}catch(x){toast('That file is not a LimitBridge backup')}};r.readAsText(t.files[0])}});
+const OB=[['👋 Welcome','Add your own free Claude accounts. Everything stays on this phone. Nothing is sent anywhere.'],['💾 Save before the limit','When a chat is almost full, open Save Before Limit, copy the prompt, paste it in that chat, and copy the answer.'],['🔁 Continue on another account','Paste the answer in Handoff Maker, press Create handoff, and paste the result into your next account.']];
+function ob(){const o=$('#ob');if(S.ob){o.hidden=true;return}o.hidden=false;const s=sel.o||0;
+o.innerHTML=`<div class="c"><p class="mu">Step ${s+1} of 3</p><h2>${OB[s][0]}</h2><p>${OB[s][1]}</p><div class="row" style="margin-top:14px"><button class="b g" data-a="skip">Skip</button><button class="b" data-a="on">${s==2?'Start':'Next'}</button></div></div>`}
+function theme(){document.documentElement.dataset.t=S.th||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}
+setInterval(()=>{let ch=0;const t=Date.now();S.a.forEach(a=>{if(a.st=='lim'&&a.rs&&a.rs<=t){a.st='ok';a.rs=0;ch=1}});
+const d=new Date().toDateString();if(S.day!=d){S.day=d;if(S.daily)S.a.forEach(a=>a.n=0);ch=1}
+if(ch){save();if(ed===null)render()}document.querySelectorAll('[data-t]').forEach(e=>e.textContent=cd(+e.dataset.t))},1000);
+const ic=n=>{const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.fillStyle='#3730a3';x.fillRect(0,0,n,n);x.fillStyle='#fff';x.font='bold '+n*.45+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('LB',n/2,n/2);return c.toDataURL()};
+try{const m={name:'LimitBridge Free',short_name:'LimitBridge',start_url:location.href.split('#')[0],display:'standalone',background_color:'#3730a3',theme_color:'#3730a3',icons:[192,512].map(n=>({src:ic(n),sizes:n+'x'+n,type:'image/png'}))};
+$('#mf').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+const l=document.createElement('link');l.rel='apple-touch-icon';l.href=ic(180);document.head.appendChild(l)}catch(e){}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+theme();save();render();ob();
+</script></body></html>
